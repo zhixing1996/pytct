@@ -5,8 +5,15 @@ import os
 import sys
 import re
 import tempfile
-sys.path.append("./libximc")
-from libximc import pyximc
+
+cur_dir = os.path.abspath(os.path.dirname(__file__))
+ximc_dir = os.path.join(cur_dir, "..", "ximc")
+ximc_package_dir = os.path.join(ximc_dir, "crossplatform", "wrappers", "python")
+sys.path.append(ximc_package_dir)  # add ximc.py wrapper to python path
+
+if sys.platform in ("win32", "win64"):
+	libdir = os.path.join(ximc_dir, sys.platform)
+	os.environ["Path"] = libdir + ";" + os.environ["Path"]  # add dll
 
 if sys.version_info >= (3,0):
     import urllib.parse
