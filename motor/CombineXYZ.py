@@ -12,7 +12,7 @@ from PyQt5 import QtGui, QtCore, uic, QtWidgets
 tctEnable = True
 if tctEnable:
     import pymotor
-    from VitualDevice import *
+    import VitualDevice as vitual_dev
 
 testpass = False
 
@@ -94,15 +94,10 @@ class Axis(QtWidgets.QWidget):
             self.Yaxis.move(pos_Y)
             self.Zaxis.move(pos_Z)
         self.UpdateDesiredPos()
-            #self.ui.SetPosX.setText(self.currentPos)
-        #else:
-            #self.ui.StatusLabel.setText(str(pos))
-            #self.currentPos = self.ui.DesirePos.value()
-            #self.ui.CurrentPos.display(self.currentPos)
+
     def MoveRE(self,motor,movement):
-        #movement = self.ui.StepMoveX.value()
-        UpperLimit = 1015 #self.ui.DesirePos.maximum()
-        LowerLimit = 0    #self.ui.DesirePos.minimum()
+        UpperLimit = 100 #self.ui.DesirePos.maximum()
+        LowerLimit = -100    #self.ui.DesirePos.minimum()
         currentPos = motor.get_status_position()
         if currentPos + movement > UpperLimit:
             movement = UpperLimit - currentPos
@@ -120,19 +115,13 @@ class Axis(QtWidgets.QWidget):
             self.currentPosX = self.Xaxis.get_status_position()
             self.currentPosY = self.Yaxis.get_status_position()
             self.currentPosZ = self.Zaxis.get_status_position()
-            #self.ui.CurrentPos.display(self.currentPos)
     def UpdateDesiredPos(self):
         if tctEnable:
             self.CurrentPosition()
             self.ui.CurrentPosX.display(self.currentPosX)
             self.ui.CurrentPosY.display(self.currentPosY)
             self.ui.CurrentPosZ.display(self.currentPosZ)
-    '''    
-    def UpdateState(self):
-        if tctEnable and testPass:
-            state = self.Xaxis.state()
-            self.ui.StatusLabel.setText(str(state))
-    '''
+
     def run(self):
         self.ui.show()
 '''
@@ -187,6 +176,7 @@ class MainWidget(QtWidgets.QWidget):
         ################################################
         #initialize the device information,search usable device
         pymotor.enum_device()
+        print('\nemum complete!\n')
         self.devenum ,self.dev_count = pymotor.enum_device()
         self.device = numpy.empty(5,dtype=object)
         if self.dev_count == 0:
@@ -195,11 +185,15 @@ class MainWidget(QtWidgets.QWidget):
             self.device_name = ["testxmotor","testymotor","testzmotor"]
             self.i = 0
             for self.str_device in self.device_name:
-                self.device[self.i] = VitualDevice(self.device_name[self.i])
+                print('str_device:'+self.str_device)
+                self.device[self.i] = vitual_dev.VitualDevice(self.device_name[self.i])
+                print('device[]' + str(self.device[self.i]))
+                #self.testmotor = pymotor.Motor(vitual_dev.VitualDevice(self.str_device).open_name)
+                #self.testmotor.move(10)
                 self.i = self.i + 1
         else:
             for self.dev_ind in range(0,self.dev_count):
-                self.device[self.dev_count] =pymotor.Motor(lib.get_device_name(self.devenum,self.dev_ind))
+                self.device[self.dev_count] =pymotor.Motor(pymotor.Motor.get_name(self,self.devenum,self.dev_ind))
 
 
 

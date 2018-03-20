@@ -48,7 +48,7 @@ sbuf = create_string_buffer(64)
 lib.ximc_version(sbuf)
 print("Library version: " + sbuf.raw.decode())
 
-DEBUG = False 
+DEBUG = False
 def log(s):
     if DEBUG:
         print(s)
@@ -157,7 +157,8 @@ class Motor():
         if result == Result.Ok:
             log("Status.CurPosition: " + repr(status.CurPosition))
 
-   
+    def get_name(self,devenum,dev_index):
+        return self.lib.get_device_name(devenum,dev_index)
 
 
     def open_device(self, open_name):
