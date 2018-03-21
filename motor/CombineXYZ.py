@@ -30,7 +30,7 @@ class Axis(QtWidgets.QWidget):
             self.Zaxis = Device[2]
 
         #Move
-        self.ui.MoveButton.clicked.connect(self.MoveAB)
+        self.ui.MoveButton.clicked.connect(lambda:self.MoveAB(int(self.ui.SetPosX.text()), int(self.ui.SetPosY.text()), int(self.ui.SetPosZ.text())))
 
         #Step move X
         self.ui.XPlus.clicked.connect(lambda:self.MoveRE(self.Xaxis,self.ui.StepMoveX.value()))
@@ -48,6 +48,10 @@ class Axis(QtWidgets.QWidget):
         self.ui.ResetPosX.clicked.connect(lambda:self.Home(self.Xaxis))
         self.ui.ResetPosY.clicked.connect(lambda:self.Home(self.Yaxis))
         self.ui.ResetPosZ.clicked.connect(lambda:self.Home(self.Zaxis))
+
+        #scan
+        self.ui.ScanBut.clicked.connect(lambda:self.Scan(self.Xaxis,self.Yaxis,self.Zaxis))
+
          # Var
         self.currentPosX = 0
         self.currentPosY = 0
@@ -84,11 +88,7 @@ class Axis(QtWidgets.QWidget):
     def Limits(self):
         self.Limits = Limits(self)
     '''
-    def MoveAB(self):
-
-        pos_X = int(self.ui.SetPosX.text())
-        pos_Y = int(self.ui.SetPosY.text())
-        pos_Z = int(self.ui.SetPosZ.text())
+    def MoveAB(self,pos_X,pos_Y,pos_Z):
         if tctEnable:
             self.Xaxis.move(pos_X)
             self.Yaxis.move(pos_Y)
@@ -106,8 +106,45 @@ class Axis(QtWidgets.QWidget):
 
         if tctEnable:
             motor.forward(movement)
-        time.sleep(0.5)
+        time.sleep(0.1)
         self.UpdateDesiredPos()
+
+    def Scan(self,motor1,motor2,motor3):
+        self.x0 = self.ui.x0.value() 
+        self.y0 = self.ui.y0.value()
+        self.z0 = self.ui.z0.value()
+        self.dx = self.ui.dx.value()
+        self.dy = self.ui.dy.value()
+        self.dz = self.ui.dz.value()
+        self.Nx = self.ui.Nx.value()
+        self.Ny = self.ui.Ny.value()
+        self.Nz = self.ui.Nz.value()
+        
+        self.MoveAB(self.x0,self.y0,self.z0)
+        #delay 1 second for motor moving to (x0,y0.z0)
+        time.sleep(2)
+        '''
+        # scan step by step
+        self.flag1 = self.flag2 = -1
+        for self.i in range(0, self.Nz):
+            self.MoveRE(self.Zaxis, self.dz)
+            self.flag1 = self.flag1 * (-1)
+            for self.j in range(0, self.Nx):
+                self.MoveRE(self.Xaxis, self.flag1 * self.dx)
+                self.flag2 = self.flag2 * (-1)
+                for self.k in range(0, self.Ny):
+                    self.MoveRE(self.Yaxis, self.flag2 * self.dy)
+                    print(self.Xaxis.get_status_position(),self.Yaxis.get_status_position(),self.Zaxis.get_status_position())
+        '''
+        for self.PZ in range(self.z0, self.z0 + ((self.Nz + 1) * self.dz) , self.dz):
+            for self.PX in range(self.x0, self.x0 + ((self.Nx + 1) * self.dx) , self.dx):
+                for self.PY in range(self.y0, self.y0 + ((self.Ny + 1) * self.dy) , self.dy):
+                    self.MoveAB(self.PX, self.PY, self.PZ)
+                    time.sleep(0.1)
+                    print(self.Xaxis.get_status_position(),self.Yaxis.get_status_position(),self.Zaxis.get_status_position())
+                    
+        self.UpdateDesiredPos()
+
 
     
     def CurrentPosition(self):
@@ -124,47 +161,7 @@ class Axis(QtWidgets.QWidget):
 
     def run(self):
         self.ui.show()
-'''
-class Limits(QtWidgets.QDialog):
-    def __init__(self, parent):
-        QtWidgets.QDialog.__init__(self, parent)
 
-        # Declaring GUI
-        self.ui = uic.loadUi('GUI/Limits.ui')
-        self.ui.show()
-        self.ui.ButtonBox.accepted.connect(lambda: self.Accepted)
-        self.ui.UpperLimit.valueChanged.connect(lambda: self.UpdateUpperLimit)
-        self.ui.LowerLimit.valueChanged.connect(lambda: self.UpdateLowerLimit)
-        self.ui.setWindowTitle(str(parent.Title + " Limits"))
-        self.ui.UpperLimit.setMaximum(parent.lenght*2)
-        self.ui.LowerLimit.setMaximum(parent.lenght*2)
-        self.ui.UpperLimit.setMinimum(-parent.lenght*2)
-        self.ui.LowerLimit.setMinimum(-parent.lenght*2)
-        self.ui.UpperLimit.setValue(parent.ui.DesirePos.maximum())
-        self.ui.LowerLimit.setValue(parent.ui.DesirePos.minimum())
-
-    def UpdateUpperLimit(self, parent):
-        self.UpperLimit = self.ui.UpperLimit.value()
-        self.LowerLimit = self.ui.LowerLimit.value()
-        if self.UpperLimit - self.LowerLimit > parent.lenght:
-            self.ui.LowerLimit.setValue(self.UpperLimit - parent.lenght)
-        elif self.UpperLimit <= self.LowerLimit:
-            self.ui.LowerLimit.setValue(self.UpperLimit - 1)
-
-    def UpdateLowerLimit(self, parent):
-        self.UpperLimit = self.ui.UpperLimit.value()
-        self.LowerLimit = self.ui.LowerLimit.value()
-        if self.LowerLimit + parent.lenght < self.UpperLimit:
-            self.ui.UpperLimit.setValue(self.LowerLimit + parent.lenght)
-        elif self.LowerLimit >= self.UpperLimit:
-            self.ui.UpperLimit.setValue(self.LowerLimit + 1)
-
-    def Accepted(self, parent):
-        parent.ui.DesirePos.setMaximum(self.ui.UpperLimit.value())
-        parent.ui.DesirePos.setMinimum(self.ui.LowerLimit.value())
-        parent.ui.Scroll.setMaximum(self.ui.UpperLimit.value())
-        parent.ui.Scroll.setMinimum(self.ui.LowerLimit.value())
-'''
 class MainWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(MainWidget, self).__init__(parent)
@@ -181,7 +178,7 @@ class MainWidget(QtWidgets.QWidget):
         self.device = numpy.empty(5,dtype=object)
         if self.dev_count == 0:
             print("\nNo finding of device.")
-            print("Use the vitual device:")
+            print("\nUse the vitual device:\n")
             self.device_name = ["testxmotor","testymotor","testzmotor"]
             self.i = 0
             for self.str_device in self.device_name:
@@ -198,38 +195,14 @@ class MainWidget(QtWidgets.QWidget):
 
 
         ##############################################################
-        # DETECTOR
-        # X Detector
+
         XYZD_Title = "XYZ Motor"
-        # XD_Device = "testxmotor"
-        # YD_Device = "testymotor"
-        # ZD_Device = "testzmotor"
-        # XYZD_Device = [XD_Device,YD_Device,ZD_Device]
-        #XD_Device = "xi-com:///dev/tty.usbmodem00000D81"
         XYZD_uiFile = "GUI/XYZWidget.ui"
         self.XYZDetector = Axis(self, XYZD_Title, self.device, XYZD_uiFile)
 
-        ## Y Detector
-        #YD_Title = "Y Detector" 
-        #YD_Device = "testydet"
-        #YD_uiFile = "GUI/YWidget.ui"
-        #self.YDetector = Axis(self, YD_Title, YD_Device, YD_uiFile)
-
-        ## Z Detector
-        #ZD_Title = "Z Detector"
-        #ZD_Device = "testzdet"
-        #ZD_uiFile = "GUI/ZWidget.ui"
-        #self.ZDetector = Axis(self, ZD_Title, ZD_Device, ZD_uiFile)
-
-        ################################################################
-        # MAIN WINDOW
         self.stack.addWidget(self.XYZDetector)
-        #self.stack.addWidget(self.YDetector)
-        #self.stack.addWidget(self.ZDetector)
 
         self.XYZDetector.run()
-        #self.YDetector.run()
-        #self.ZDetector.run()
 
 
 if __name__ == "__main__":
