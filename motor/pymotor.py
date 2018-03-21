@@ -14,14 +14,17 @@ sys.path.append(ximc_package_dir)  # add ximc.py wrapper to python path
 
 print(ximc_package_dir)
 
+if platform.system()  == "Windows":
+    print("windows#################")
+    if platform.architecture() == ('64bit', 'WindowsPE') :
+        libdir = os.path.join(ximc_dir, "win64")
+        #print(platform.architecture())
+    else:
+        libdir = os.path.join(ximc_dir,"win32")
+        #print(platform.architecture())
+        
 
-if platform.system() == "Windows":
-	if platform.machine() == "AMD64":
-		libdir = os.path.join(ximc_dir, "win64")
-		#print(platform.machine())
-	else:
-		libdir = os.path.join(ximc_dir, "win32")
-#print(libdir)
+    #print(libdir)
 os.environ["Path"] = libdir + ";" + os.environ["Path"]  # add dll
 
 if sys.version_info >= (3,0):
@@ -115,7 +118,7 @@ class Motor():
         pos = ctypes.c_int()
         pos.value = int(position)
         result = self.lib.command_move(self.device_id, pos, 0)
-        log("Result: " + repr(result))
+        print("Result: " + repr(result))
 
     def stop(self):
         log("\nStopping")

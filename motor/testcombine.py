@@ -17,17 +17,22 @@ if tctEnable:
 testpass = False
 
 
-class Axis(QtWidgets.QWidget):
-    def __init__(self, parent, Title, Device, uiFile):
-        super(Axis, self).__init__(parent)
+class MainWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super(MainWidget, self).__init__(parent)
 
-        self.ui = uic.loadUi(uiFile)
+        ################################################
+        #initialize the device information,search usable device
+        self.InitEmum()
+
+        self.uiFile = "GUI/XYZWidget.ui"
+        self.ui = uic.loadUi(self.uiFile)
+        self.Title = "XYZ Motor"
+        ##############################################################
         self.timer = QtCore.QTimer()
-        self.Device = Device
+        
         #Declaring Device
-        if tctEnable:
-            self.SetMotor()
-            
+        self.SetMotor()
             
 
         #Move
@@ -60,15 +65,36 @@ class Axis(QtWidgets.QWidget):
         self.currentPosX = 0
         self.currentPosY = 0
         self.currentPosZ = 0
-        self.Title = Title
 
         #####################
         # Initializing Widget
         self.UpdateDesiredPos()
-        self.ui.setWindowTitle(Title)
+        self.ui.setWindowTitle(self.Title)
 
        
-        #self.lenght = self.ui.DesirePos.maximum()
+        self.ui.show()
+
+    def InitEmum(self):
+        pymotor.enum_device()
+        print('\nemum complete!\n')
+        self.devenum ,self.dev_count = pymotor.enum_device()
+        self.device = numpy.empty(5,dtype=object)
+        if self.dev_count == 0:
+            print("\nNo finding of device.")
+            print("\nUse the vitual device:\n")
+            self.device_name = ["testxmotor","testymotor","testzmotor"]
+            self.i = 0
+            for self.str_device in self.device_name:
+                print('str_device:'+self.str_device)
+                self.device[self.i] = vitual_dev.VitualDevice(self.device_name[self.i])
+                print('device[]' + str(self.device[self.i]))
+                #self.testmotor = pymotor.Motor(vitual_dev.VitualDevice(self.str_device).open_name)
+                #self.testmotor.move(10)
+                self.i = self.i + 1
+        else:
+            for self.dev_ind in range(0,self.dev_count):
+                self.device[self.dev_count] =pymotor.Motor(pymotor.Motor.get_name(self,self.devenum,self.dev_ind))
+        
 
     def Home(self,motor):
         ret = QtWidgets.QMessageBox.warning(self, "Homming",
@@ -100,8 +126,8 @@ class Axis(QtWidgets.QWidget):
         self.UpdateDesiredPos()
 
     def MoveRE(self,motor,movement):
-        UpperLimit = 100 #self.ui.DesirePos.maximum()
-        LowerLimit = -100    #self.ui.DesirePos.minimum()
+        UpperLimit = 100     
+        LowerLimit = -100    
         currentPos = motor.get_status_position()
         if currentPos + movement > UpperLimit:
             movement = UpperLimit - currentPos
@@ -145,11 +171,6 @@ class Axis(QtWidgets.QWidget):
         #             #self.UpdateDesiredPos() 
                     
 
-
-
-
-
-    
         for self.PZ in range(self.z0, self.z0 + ((self.Nz + 1) * self.dz) , self.dz):
             for self.PX in range(self.x0, self.x0 + ((self.Nx + 1) * self.dx) , self.dx):
                 for self.PY in range(self.y0, self.y0 + ((self.Ny + 1) * self.dy) , self.dy):
@@ -160,9 +181,9 @@ class Axis(QtWidgets.QWidget):
                     #time.sleep(0.1)
 
     def SetMotor(self):
-        self.Xaxis = self.Device[self.ui.X_Motor_Num.value()-1]
-        self.Yaxis = self.Device[self.ui.Y_Motor_Num.value()-1]
-        self.Zaxis = self.Device[self.ui.Z_Motor_Num.value()-1]
+        self.Xaxis = self.device[self.ui.X_Motor_Num.value()-1]
+        self.Yaxis = self.device[self.ui.Y_Motor_Num.value()-1]
+        self.Zaxis = self.device[self.ui.Z_Motor_Num.value()-1]
             
         
     
@@ -182,50 +203,6 @@ class Axis(QtWidgets.QWidget):
             self.ui.CurrentPosZ_2.display(self.currentPosZ)
             self.timer.start(100)
 
-    def run(self):
-        self.ui.show()
-
-class MainWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        super(MainWidget, self).__init__(parent)
-
-        self.stack = QtWidgets.QStackedWidget()
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.addWidget(self.stack)
-
-        ################################################
-        #initialize the device information,search usable device
-        pymotor.enum_device()
-        print('\nemum complete!\n')
-        self.devenum ,self.dev_count = pymotor.enum_device()
-        self.device = numpy.empty(5,dtype=object)
-        if self.dev_count == 0:
-            print("\nNo finding of device.")
-            print("\nUse the vitual device:\n")
-            self.device_name = ["testxmotor","testymotor","testzmotor"]
-            self.i = 0
-            for self.str_device in self.device_name:
-                print('str_device:'+self.str_device)
-                self.device[self.i] = vitual_dev.VitualDevice(self.device_name[self.i])
-                print('device[]' + str(self.device[self.i]))
-                #self.testmotor = pymotor.Motor(vitual_dev.VitualDevice(self.str_device).open_name)
-                #self.testmotor.move(10)
-                self.i = self.i + 1
-        else:
-            for self.dev_ind in range(0,self.dev_count):
-                self.device[self.dev_count] =pymotor.Motor(pymotor.Motor.get_name(self,self.devenum,self.dev_ind))
-
-
-
-        ##############################################################
-
-        XYZD_Title = "XYZ Motor"
-        XYZD_uiFile = "GUI/XYZWidget.ui"
-        self.XYZDetector = Axis(self, XYZD_Title, self.device, XYZD_uiFile)
-
-        self.stack.addWidget(self.XYZDetector)
-
-        self.XYZDetector.run()
 
 
 if __name__ == "__main__":
