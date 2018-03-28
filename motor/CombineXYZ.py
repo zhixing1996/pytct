@@ -17,41 +17,47 @@ if tctEnable:
 testpass = False
 
 
-class Axis(QtWidgets.QWidget):
-    def __init__(self, parent, Title, Device, uiFile):
-        super(Axis, self).__init__(parent)
 
-        self.ui = uic.loadUi(uiFile)
+class MainWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super(MainWidget, self).__init__(parent)
+
+        ################################################
+        #initialize the device information,search usable device
+        self.EmumDevice()
+
+        self.uiFile = "GUI/XYZWidget.ui"
+        self.ui = uic.loadUi(self.uiFile)
+        self.Title = "XYZ Motor"
+        ##############################################################
         self.timer = QtCore.QTimer()
-        self.Device = Device
+        
         #Declaring Device
-        if tctEnable:
-            self.SetMotor()
-            
+        self.SetMotor()
             
 
         #Move
-        self.ui.MoveButton.clicked.connect(lambda:self.MoveAB(int(self.ui.SetPosX.text()), int(self.ui.SetPosY.text()), int(self.ui.SetPosZ.text())))
+        self.ui.MoveButton.clicked.connect(lambda:self.ClickMove(int(self.ui.SetPosX.text()), int(self.ui.SetPosY.text()), int(self.ui.SetPosZ.text())))
 
         #Step move X
-        self.ui.XPlus.clicked.connect(lambda:self.MoveRE(self.Xaxis,self.ui.StepMoveX.value()))
-        self.ui.XMinus.clicked.connect(lambda:self.MoveRE(self.Xaxis,-self.ui.StepMoveX.value()))
+        self.ui.XPlus.clicked.connect(lambda:self.MoveStep("X",1,self.ui.StepMoveX.value()))
+        self.ui.XMinus.clicked.connect(lambda:self.MoveStep("X",-1,self.ui.StepMoveX.value()))
 
         #Step move Y
-        self.ui.YPlus.clicked.connect(lambda:self.MoveRE(self.Yaxis,self.ui.StepMoveY.value()))
-        self.ui.YMinus.clicked.connect(lambda:self.MoveRE(self.Yaxis,-self.ui.StepMoveY.value()))
+        self.ui.YPlus.clicked.connect(lambda:self.MoveStep("Y",1,self.ui.StepMoveY.value()))
+        self.ui.YMinus.clicked.connect(lambda:self.MoveStep("Y",-1,self.ui.StepMoveY.value()))
 
         #Step move Z
-        self.ui.ZPlus.clicked.connect(lambda:self.MoveRE(self.Zaxis,self.ui.StepMoveZ.value()))
-        self.ui.ZMinus.clicked.connect(lambda:self.MoveRE(self.Zaxis,-self.ui.StepMoveZ.value()))
+        self.ui.ZPlus.clicked.connect(lambda:self.MoveStep("Z",1,self.ui.StepMoveZ.value()))
+        self.ui.ZMinus.clicked.connect(lambda:self.MoveStep("Z",-1,self.ui.StepMoveZ.value()))
 
         #Home
-        self.ui.ResetPosX.clicked.connect(lambda:self.Home(self.Xaxis))
-        self.ui.ResetPosY.clicked.connect(lambda:self.Home(self.Yaxis))
-        self.ui.ResetPosZ.clicked.connect(lambda:self.Home(self.Zaxis))
+        self.ui.ResetPosX.clicked.connect(lambda:self.Home("X"))
+        self.ui.ResetPosY.clicked.connect(lambda:self.Home("Y"))
+        self.ui.ResetPosZ.clicked.connect(lambda:self.Home("Z"))
 
         #scan
-        self.ui.ScanBut.clicked.connect(lambda:self.Scan(self.Xaxis,self.Yaxis,self.Zaxis))
+        self.ui.ScanBut.clicked.connect(self.Scan)
 
         #set motor
         self.ui.SetMotor.clicked.connect(self.SetMotor)
@@ -60,34 +66,152 @@ class Axis(QtWidgets.QWidget):
         self.currentPosX = 0
         self.currentPosY = 0
         self.currentPosZ = 0
-        self.Title = Title
 
         #####################
         # Initializing Widget
         self.UpdateDesiredPos()
-        self.ui.setWindowTitle(Title)
+        self.ui.setWindowTitle(self.Title)
+        self.timer.timeout.connect(self.UpdateDesiredPos)
 
        
-        #self.lenght = self.ui.DesirePos.maximum()
+        self.ui.show()
+
+    def ClickMove(self,px,py,pz):
+        self.new_thread = ControlThread(self.setdevice)
+        self.new_thread.operation_num = 3
+        self.new_thread.px = px
+        self.new_thread.py = py
+        self.new_thread.pz = pz
+        self.new_thread.start()
+
+    def MoveStep(self,motor,direction,steps):
+        self.new_thread = ControlThread(self.setdevice)
+        self.new_thread.operation_num = 4
+        self.new_thread.mv = direction*steps
+        if motor == "X":
+            self.new_thread.motor = self.new_thread.laser_stage.Xaxis
+        elif motor == "Y":
+            self.new_thread.motor = self.new_thread.laser_stage.Yaxis
+        elif motor == "Z":
+            self.new_thread.motor = self.new_thread.laser_stage.Zaxis
+        else:
+            print("\n\n\nError!!!!!!!\n\n\n")
+        self.new_thread.start()
+    def Home(self,motor):
+        self.new_thread = ControlThread(self.setdevice)
+        self.new_thread.operation_num = 1
+        if motor == "X":
+            self.new_thread.motor = self.new_thread.laser_stage.Xaxis
+        elif motor == "Y":
+            self.new_thread.motor = self.new_thread.laser_stage.Yaxis
+        elif motor == "Z":
+            self.new_thread.motor = self.new_thread.laser_stage.Zaxis
+        else:
+            print("\n\n\nError!!!!!!!\n\n\n")
+        self.new_thread.start()
+    def Scan(self):
+        self.new_thread = ControlThread(self.setdevice)
+        self.new_thread.operation_num = 5
+        self.new_thread.po = [self.ui.x0.value(),self.ui.y0.value(),self.ui.z0.value()]
+        self.new_thread.dp = [self.ui.dx.value(),self.ui.dy.value(),self.ui.dz.value()]
+        self.new_thread.Np = [self.ui.Nx.value(),self.ui.Ny.value(),self.ui.Nz.value()]
+        self.new_thread.start()
+
+    def SetMotor(self):
+        self.setdevice = numpy.empty(3,dtype=object)
+        self.setdevice[0] = self.device[self.ui.X_Motor_Num.value()-1]
+        self.setdevice[1] = self.device[self.ui.Y_Motor_Num.value()-1]
+        self.setdevice[2] = self.device[self.ui.Z_Motor_Num.value()-1]
+
+    
+    def EmumDevice(self):
+        pymotor.enum_device()
+        print('\nemum complete!\n')
+        self.devenum ,self.dev_count = pymotor.enum_device()
+        self.device = numpy.empty(5,dtype=object)
+        if self.dev_count == 0:
+            print("\nNo finding of device.")
+            print("\nUse the vitual device:\n")
+            self.device_name = ["testxmotor","testymotor","testzmotor"]
+            self.i = 0
+            for self.str_device in self.device_name:
+                print('str_device:'+self.str_device)
+                self.device[self.i] = vitual_dev.VitualDevice(self.device_name[self.i])
+                print('device[]' + str(self.device[self.i]))
+                #self.testmotor = pymotor.Motor(vitual_dev.VitualDevice(self.str_device).open_name)
+                #self.testmotor.move(10)
+                self.i = self.i + 1
+        else:
+            for self.dev_ind in range(0,self.dev_count):
+                self.device[self.dev_ind] =pymotor.Motor(pymotor.Motor.get_name(self,self.devenum,self.dev_ind))
+        
+            
+        
+    
+    def CurrentPosition(self):
+        if tctEnable:
+            self.currentPosX = self.setdevice[0].get_status_position()
+            self.currentPosY = self.setdevice[1].get_status_position()
+            self.currentPosZ = self.setdevice[2].get_status_position()
+
+    def UpdateDesiredPos(self):
+        if tctEnable:
+            self.CurrentPosition()
+            self.ui.CurrentPosX.display(self.currentPosX)
+            self.ui.CurrentPosX_2.display(self.currentPosX)
+            self.ui.CurrentPosY.display(self.currentPosY)
+            self.ui.CurrentPosY_2.display(self.currentPosY)
+            self.ui.CurrentPosZ.display(self.currentPosZ)
+            self.ui.CurrentPosZ_2.display(self.currentPosZ)
+            self.timer.start(500)
+
+
+class ControlThread(QtCore.QThread):
+    def __init__(self,device):
+        super(ControlThread,self).__init__()
+        self.laser_stage = Stage(device)
+        #control message initial
+        self.operation_num = 0
+        self.motor = self.laser_stage.Xaxis
+        self.px = 0
+        self.py = 0
+        self.pz = 0
+        self.mv = 0
+        self.po = [0,0,0]
+        self.dp = [1,1,1]
+        self.Np = [0,0,0]
+
+    def run(self):
+        if self.operation_num == 1:
+            self.laser_stage.Home(self.motor)
+        elif self.operation_num == 2:
+            self.laser_stage.Stop(self.motor)
+        elif self.operation_num == 3:
+            self.laser_stage.MoveAB(self.px,self.py,self.pz)
+        elif self.operation_num == 4:
+            self.laser_stage.MoveRE(self.motor,self.mv)
+        elif self.operation_num == 5:
+            self.laser_stage.Scan(self.po,self.dp,self.Np)
+        else:
+            time.sleep(1)
+
+
+class Stage():
+    def __init__(self,device):
+        self.Xaxis = device[0]
+        self.Yaxis = device[1]
+        self.Zaxis = device[2]
+
+    
 
     def Home(self,motor):
-        ret = QtWidgets.QMessageBox.warning(self, "Homming",
-                "Please Check the setup!\n\nAre you sure you really want\nto Home the motor?",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.Cancel | QtWidgets.QMessageBox.Escape)
-        if ret == QtWidgets.QMessageBox.Yes:
             if tctEnable:
                 motor.home()
-            else:
-                self.ui.StatusLabel.setText("Home")
-        self.UpdateDesiredPos()
 
-    def Stop(self):
+    def Stop(self,motor):
         if tctEnable:
-            self.Xaxis.stop()
-        else:
-            self.ui.StatusLabel.setText("")
+            motor.stop()
 
-        self.UpdateDesiredPos()
     '''
     def Limits(self):
         self.Limits = Limits(self)
@@ -97,11 +221,10 @@ class Axis(QtWidgets.QWidget):
             self.Xaxis.move(pos_X)
             self.Yaxis.move(pos_Y)
             self.Zaxis.move(pos_Z)
-        self.UpdateDesiredPos()
 
     def MoveRE(self,motor,movement):
-        UpperLimit = 100 #self.ui.DesirePos.maximum()
-        LowerLimit = -100    #self.ui.DesirePos.minimum()
+        UpperLimit = 100     
+        LowerLimit = -100    
         currentPos = motor.get_status_position()
         if currentPos + movement > UpperLimit:
             movement = UpperLimit - currentPos
@@ -111,18 +234,18 @@ class Axis(QtWidgets.QWidget):
         if tctEnable:
             motor.forward(movement)
         time.sleep(0.1)
-        self.UpdateDesiredPos()
 
-    def Scan(self,motor1,motor2,motor3):
-        self.x0 = self.ui.x0.value() 
-        self.y0 = self.ui.y0.value()
-        self.z0 = self.ui.z0.value()
-        self.dx = self.ui.dx.value()
-        self.dy = self.ui.dy.value()
-        self.dz = self.ui.dz.value()
-        self.Nx = self.ui.Nx.value()
-        self.Ny = self.ui.Ny.value()
-        self.Nz = self.ui.Nz.value()
+    
+    def Scan(self,pos_o,dp,Np):
+        self.x0 = pos_o[0] 
+        self.y0 = pos_o[1]
+        self.z0 = pos_o[2]
+        self.dx = dp[0]
+        self.dy = dp[1]
+        self.dz = dp[2]
+        self.Nx = Np[0]
+        self.Ny = Np[1]
+        self.Nz = Np[2]
         
         self.MoveAB(self.x0,self.y0,self.z0)
         #delay 1 second for motor moving to (x0,y0.z0)
@@ -145,87 +268,17 @@ class Axis(QtWidgets.QWidget):
         #             #self.UpdateDesiredPos() 
                     
 
-
-
-
-
-    
         for self.PZ in range(self.z0, self.z0 + ((self.Nz + 1) * self.dz) , self.dz):
             for self.PX in range(self.x0, self.x0 + ((self.Nx + 1) * self.dx) , self.dx):
                 for self.PY in range(self.y0, self.y0 + ((self.Ny + 1) * self.dy) , self.dy):
                     self.MoveAB(self.PX, self.PY, self.PZ)
                     print(self.Xaxis.get_status_position(),self.Yaxis.get_status_position(),self.Zaxis.get_status_position())
-                    self.timer.timeout.connect(self.UpdateDesiredPos)
-                    self.timer.start(100)
+                    #self.timer.timeout.connect(self.UpdateDesiredPos)
+                    #self.timer.start(100)
                     #time.sleep(0.1)
 
-    def SetMotor(self):
-        self.Xaxis = self.Device[self.ui.X_Motor_Num.value()-1]
-        self.Yaxis = self.Device[self.ui.Y_Motor_Num.value()-1]
-        self.Zaxis = self.Device[self.ui.Z_Motor_Num.value()-1]
-            
-        
-    
-    def CurrentPosition(self):
-        if tctEnable:
-            self.currentPosX = self.Xaxis.get_status_position()
-            self.currentPosY = self.Yaxis.get_status_position()
-            self.currentPosZ = self.Zaxis.get_status_position()
-    def UpdateDesiredPos(self):
-        if tctEnable:
-            self.CurrentPosition()
-            self.ui.CurrentPosX.display(self.currentPosX)
-            self.ui.CurrentPosX_2.display(self.currentPosX)
-            self.ui.CurrentPosY.display(self.currentPosY)
-            self.ui.CurrentPosY_2.display(self.currentPosY)
-            self.ui.CurrentPosZ.display(self.currentPosZ)
-            self.ui.CurrentPosZ_2.display(self.currentPosZ)
-            self.timer.start(100)
-
-    def run(self):
-        self.ui.show()
-
-class MainWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        super(MainWidget, self).__init__(parent)
-
-        self.stack = QtWidgets.QStackedWidget()
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.addWidget(self.stack)
-
-        ################################################
-        #initialize the device information,search usable device
-        pymotor.enum_device()
-        print('\nemum complete!\n')
-        self.devenum ,self.dev_count = pymotor.enum_device()
-        self.device = numpy.empty(5,dtype=object)
-        if self.dev_count == 0:
-            print("\nNo finding of device.")
-            print("\nUse the vitual device:\n")
-            self.device_name = ["testxmotor","testymotor","testzmotor"]
-            self.i = 0
-            for self.str_device in self.device_name:
-                print('str_device:'+self.str_device)
-                self.device[self.i] = vitual_dev.VitualDevice(self.device_name[self.i])
-                print('device[]' + str(self.device[self.i]))
-                #self.testmotor = pymotor.Motor(vitual_dev.VitualDevice(self.str_device).open_name)
-                #self.testmotor.move(10)
-                self.i = self.i + 1
-        else:
-            for self.dev_ind in range(0,self.dev_count):
-                self.device[self.dev_count] =pymotor.Motor(pymotor.Motor.get_name(self,self.devenum,self.dev_ind))
 
 
-
-        ##############################################################
-
-        XYZD_Title = "XYZ Motor"
-        XYZD_uiFile = "GUI/XYZWidget.ui"
-        self.XYZDetector = Axis(self, XYZD_Title, self.device, XYZD_uiFile)
-
-        self.stack.addWidget(self.XYZDetector)
-
-        self.XYZDetector.run()
 
 
 if __name__ == "__main__":
