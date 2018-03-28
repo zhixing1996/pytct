@@ -83,6 +83,24 @@ class Motor():
         self.lib = lib
         self.device_id = self.open_device(device_name)
 
+
+    def set_speed(self,step,speed):
+        log("\nset speed\n")
+        speed_settings = move_settings_t()
+        speed_settings.Speed = speed
+        speed_settings.uSpeed = step
+        speed_settings.Accel = 0
+        speed_settings.Decel = 0
+        speed_settings.AntiplaySpeed = 0
+        speed_settings.uAntiplaySpeed = 0
+        result = self.lib.set_move_settings(self.device_id,speed_settings)
+        print("Result:" + repr(result))
+        move_settings = move_settings_t()
+        result = self.lib.get_move_settings(self.device_id,move_settings)
+        if result == 0:
+            print("move settings:",move_settings.Speed,move_settings.uSpeed,move_settings.Accel,move_settings.Decel)
+
+
     def home(self):
         log("\nMoving home")
         result = self.lib.command_homezero(self.device_id)
@@ -93,6 +111,10 @@ class Motor():
         log(distance)
         dis = ctypes.c_int()
         dis.value = int(distance)
+        move_settings = move_settings_t()
+        result = self.lib.get_move_settings(self.device_id,move_settings)
+        if result == 0:
+            print("move settings:",move_settings.Speed,move_settings.uSpeed,move_settings.Accel,move_settings.Decel)
         result = self.lib.command_movr(self.device_id, dis, 0)
         log("Result: " + repr(result))
 
@@ -168,6 +190,7 @@ class Motor():
         device_id = ctypes.c_int()
         print("\nOpen device " + repr(open_name))
         device_id = self.lib.open_device(open_name)
+        
         print("\ndevice id:" + repr(device_id))
         return device_id
 
