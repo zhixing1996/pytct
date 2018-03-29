@@ -711,6 +711,9 @@
          <height>31</height>
         </rect>
        </property>
+       <property name="maximum">
+        <number>100000</number>
+       </property>
       </widget>
       <widget class="QSpinBox" name="dx">
        <property name="geometry">
@@ -724,6 +727,9 @@
        <property name="minimum">
         <number>1</number>
        </property>
+       <property name="maximum">
+        <number>1000</number>
+       </property>
       </widget>
       <widget class="QSpinBox" name="Nx">
        <property name="geometry">
@@ -733,6 +739,9 @@
          <width>101</width>
          <height>31</height>
         </rect>
+       </property>
+       <property name="maximum">
+        <number>1000</number>
        </property>
       </widget>
       <widget class="QSpinBox" name="y0">
@@ -765,6 +774,9 @@
        <property name="minimum">
         <number>0</number>
        </property>
+       <property name="maximum">
+        <number>100000</number>
+       </property>
       </widget>
       <widget class="QSpinBox" name="Ny">
        <property name="geometry">
@@ -774,6 +786,9 @@
          <width>101</width>
          <height>31</height>
         </rect>
+       </property>
+       <property name="maximum">
+        <number>1000</number>
        </property>
       </widget>
       <widget class="QSpinBox" name="dy">
@@ -788,6 +803,9 @@
        <property name="minimum">
         <number>1</number>
        </property>
+       <property name="maximum">
+        <number>1000</number>
+       </property>
       </widget>
       <widget class="QSpinBox" name="z0">
        <property name="geometry">
@@ -798,6 +816,9 @@
          <height>31</height>
         </rect>
        </property>
+       <property name="maximum">
+        <number>100000</number>
+       </property>
       </widget>
       <widget class="QSpinBox" name="Nz">
        <property name="geometry">
@@ -807,6 +828,9 @@
          <width>101</width>
          <height>31</height>
         </rect>
+       </property>
+       <property name="maximum">
+        <number>1000</number>
        </property>
       </widget>
       <widget class="QSpinBox" name="dz">
@@ -820,6 +844,9 @@
        </property>
        <property name="minimum">
         <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>1000</number>
        </property>
       </widget>
       <widget class="QLabel" name="label_19">
@@ -1176,7 +1203,7 @@
         <string>Set Speed</string>
        </property>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -1223,7 +1250,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -1270,7 +1297,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>0</x>
