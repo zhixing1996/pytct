@@ -65,18 +65,19 @@ def enum_device():
     print("Device count: " + repr(dev_count))
 
     controller_name = controller_name_t()
+    enum_name = ['','','']
     for dev_ind in range(0, dev_count):
-        enum_name = lib.get_device_name(devenum, dev_ind)
+        enum_name[dev_ind] = lib.get_device_name(devenum, dev_ind)
         result = lib.get_enumerate_device_controller_name(devenum, dev_ind,
                                                                    byref(controller_name))
         if result == Result.Ok:
             print("Enumerated device #{} name (port name): ".format(dev_ind) \
-                    + repr(enum_name) \
+                    + repr(enum_name[dev_ind]) \
                     + ". Friendly name: " \
                     + repr(controller_name.ControllerName) \
                     + ".")
 
-    return devenum, dev_count
+    return enum_name, dev_count
 
 class Motor():
     def __init__(self, device_name = None):
@@ -94,7 +95,7 @@ class Motor():
         speed_settings.AntiplaySpeed = 0
         speed_settings.uAntiplaySpeed = 0
         result = self.lib.set_move_settings(self.device_id,speed_settings)
-        print("Result:" + repr(result))
+        print("move settings Result:" + repr(result))
         move_settings = move_settings_t()
         result = self.lib.get_move_settings(self.device_id,move_settings)
         if result == 0:
