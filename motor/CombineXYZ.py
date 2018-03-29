@@ -274,8 +274,8 @@ class Stage():
             self.Zaxis.move(pos_Z)
 
     def MoveRE(self,motor,movement):
-        UpperLimit = 100     
-        LowerLimit = -100    
+        UpperLimit = 1000     
+        LowerLimit = -1000    
         currentPos = motor.get_status_position()
         if currentPos + movement > UpperLimit:
             movement = UpperLimit - currentPos

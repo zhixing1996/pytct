@@ -90,10 +90,10 @@ class Motor():
         speed_settings = move_settings_t()
         speed_settings.Speed = speed
         speed_settings.uSpeed = step
-        speed_settings.Accel = 0
-        speed_settings.Decel = 0
-        speed_settings.AntiplaySpeed = 0
-        speed_settings.uAntiplaySpeed = 0
+        speed_settings.Accel = 1
+        speed_settings.Decel = 1
+        speed_settings.AntiplaySpeed = 1
+        speed_settings.uAntiplaySpeed = 1
         result = self.lib.set_move_settings(self.device_id,speed_settings)
         print("move settings Result:" + repr(result))
         move_settings = move_settings_t()
