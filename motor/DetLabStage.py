@@ -19,7 +19,7 @@ class Axis(QtWidgets.QWidget):
 
         #Declaring Device
         if tctEnable:
-            self.axis = PyTCT.Motor(Device)
+            self.axis = pymotor.Motor(Device)
 
         #Jogging Plus
         self.ui.JogPlus.pressed.connect(self.JogPlus)

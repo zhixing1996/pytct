@@ -6,6 +6,7 @@ import sys
 import re
 import platform
 #from VitualDevice import *
+import tempfile
 
 cur_dir = os.path.abspath(os.path.dirname(__file__))
 ximc_dir = os.path.join(cur_dir, "..", "ximc")
