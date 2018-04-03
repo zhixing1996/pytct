@@ -37,24 +37,19 @@ class MDO3034C:
         self.my_resource.write(":WFMOutpre?")
 		
     def readOffset(self):
-        self.my_resource.write('WFMPRE:YMULT?')
-        time.sleep(1)
+        self.write_command('WFMPRE:YMULT?')
         ymult = float(self.my_resource.read_raw())
         print("ymult = " + repr(ymult) + '\n')
-        self.my_resource.write('WFMPRE:YZERO?')
-        time.sleep(1)
+        self.write_command('WFMPRE:YZERO?')
         yzero = float(self.my_resource.read_raw())
         print("yzero = " + repr(yzero) + '\n')
-        self.my_resource.write('WFMPRE:YOFF?')
-        time.sleep(0.5)
+        self.write_command('WFMPRE:YOFF?')
         yoff = float(self.my_resource.read_raw())
         print("yoff = " + repr(yoff) + '\n')
-        self.my_resource.write('WFMPRE:XINCR?')
-        time.sleep(1)
+        self.write_command('WFMPRE:XINCR?')
         xincr = float(self.my_resource.read_raw())
         print("xincr = " + repr(xincr) + '\n')
-        self.my_resource.write('WFMPRE:XZERO?')
-        time.sleep(1)
+        self.write_command('WFMPRE:XZERO?')
         xzero = float(self.my_resource.read_raw())
         print("xzero = " + repr(xzero) + '\n')
         return ymult,yzero,yoff,xincr,xzero
@@ -63,8 +58,6 @@ class MDO3034C:
         ymult,yzero,yoff,xincr,xzero=self.readOffset()
         self.my_resource.write('*CLS')
         self.my_resource.write("CURVE?")
-        #data=np.array(self.my_resource.read_raw())
-        #data = int(self.my_resource.read_raw(),16)\
         file = open('test.txt','w+')
 
         ##########################################
@@ -72,28 +65,13 @@ class MDO3034C:
         # #510000<data>\n        receive 10000 data
         # #41000<data>\n         receive 1000 data
         #########################################
-        #receive_data = self.my_resource.read_raw()
         data = np.frombuffer(self.my_resource.read_raw(),dtype=np.int8,count=int(POINT_NUMBER),offset=len(POINT_NUMBER) + 2)
-        #data = np.empty((len(receive_data) - (len(POINT_NUMBER) + 3)))
-        '''
-        print(type(receive_data))
-        for i in range(len(POINT_NUMBER) + 2, len(receive_data) - 1):
-            data[i-(len(POINT_NUMBER) + 2)] = receive_data[i]
-            file.write(str(data[i-(len(POINT_NUMBER) + 2)]) + ',')
+        np.savetxt('test.txt',data,fmt='%d',delimiter=',')
 
-        print(type(data))
-        print(data.size)
-        '''       
-        #headerlen=2+int(data[1])
-        #header=data[:headerlen]
-        #ADC_wave=data[headerlen:-1]
-        #ADC_wave = np.array(unpack('%sB' % len(ADC_wave),ADC_wave))
         print(data.size)
         Volts = (data - 0) * ymult  + yzero
         Time = np.arange(0, data.size, 1)
         Time = Time * xincr + xzero
-        #Time=Time*1e9 #ns
-        #Volts=Volts*1e3 #mV
 
         return Time, Volts
 
