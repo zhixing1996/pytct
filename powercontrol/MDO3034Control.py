@@ -1,5 +1,5 @@
 import numpy as np
-from struct import unpack
+import pandas as pd
 import pylab
 import re
 import time
@@ -74,6 +74,12 @@ class MDO3034C:
         Time = Time * xincr + xzero
 
         return Time, Volts
+
+    def save_wave_data(self,time,voltage):
+        datadic = {'Time[ms]':time,'Voltage[mv]':voltage}
+        dataform  = pd.DataFrame(datadic,columns=['Time[ms]','Voltage[mv]'])
+        dataform.to_csv('dataform.csv')
+        
 
     def plotWave(self, Time, Volts):
         pylab.plot(Time, Volts)
