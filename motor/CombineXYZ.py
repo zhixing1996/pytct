@@ -226,9 +226,10 @@ class MainWidget(QtWidgets.QWidget):
         self.capture_thread = thread.DataCapture()
         self.capture_thread.flag = True
         self.capture_thread.resource = self.ui.Interface.currentText()
-        self.capture_thread.folder = self.ui.FolderText.Text()
+        self.capture_thread.folder = self.ui.FolderText.text()
         self.capture_thread.device = self.setdevice
         self.capture_thread.frequency = self.ui.Frequency.value()
+        self.capture_thread.point_num = self.ui.Points.value()
         self.capture_thread.start()
 
     def CapturePause(self):
@@ -245,7 +246,7 @@ class MainWidget(QtWidgets.QWidget):
         self.readythread.sinOut.connect(lambda:self.DisplayReadyInfo(self.readythread.message))
 
     def DisplayReadyInfo(self,dis_message):
-        self.ui.InfoText.setText(dis_message)
+        self.ui.InfoText.append(dis_message)
 
 
 

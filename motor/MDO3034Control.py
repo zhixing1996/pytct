@@ -55,8 +55,8 @@ class MDO3034C:
         print("xzero = " + repr(xzero) + '\n')
         return ymult,yzero,yoff,xincr,xzero
 
-    def readWave(self):
-        ymult,yzero,yoff,xincr,xzero=self.readOffset()
+    def readWave(self,ymult,yzero,yoff,xincr,xzre,point_num):
+        #ymult,yzero,yoff,xincr,xzero=self.readOffset()
         self.my_resource.write('*CLS')
         self.my_resource.write("CURVE?")
         #file = open('test.txt','w+')
@@ -66,7 +66,7 @@ class MDO3034C:
         # #510000<data>\n        receive 10000 data
         # #41000<data>\n         receive 1000 data
         #########################################
-        data = np.frombuffer(self.my_resource.read_raw(),dtype=np.int8,count=int(POINT_NUMBER),offset=len(POINT_NUMBER) + 2)
+        data = np.frombuffer(self.my_resource.read_raw(),dtype=np.int8,count=int(point_num),offset=len(str(point_num)) + 2)
         #np.savetxt('test.txt',data,fmt='%d',delimiter=',')
 
         print(data.size)

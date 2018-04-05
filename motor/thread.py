@@ -48,10 +48,12 @@ class ControlThread(QtCore.QThread):
 
 class DataCapture(QtCore.QThread):
     def __init__(self):
+        super(DataCapture,self).__init__()
         self.resource = 'ASRL1::INSTR'
         self.folder = './'
         self.device = []
         self.frequency = 10
+        self.point_num = 10000
         self.timer = QtCore.QTimer()
         self.flag = True
 
@@ -63,9 +65,9 @@ class DataCapture(QtCore.QThread):
             self.timer.timeout.connect(self.capture)
 
     def capture(self):
-        filename = self.folder + 'TCT' + str(datetime.now().isoformat()) + '.csv'
+        filename = self.folder + '/TCT' + str(datetime.now().isoformat()) + '.csv'
         self.pos = [self.device[0].get_status_position(),self.device[1].get_status_position(),self.device[2].get_status_position()]
-        time,voltage = self.scope.readWave()
+        time,voltage = self.scope.readWave(self.point_num)
         myfile = open(filename,'a+')
         myfile.write('oscilloscope,' + self.info + '\n')
         myfile.write(',' + 'x' + self.pos[0] + '\n')
@@ -79,6 +81,7 @@ class DataCapture(QtCore.QThread):
 class ReadyThread(QtCore.QThread):
     sinOut = QtCore.pyqtSignal(str)
     def __init__(self):
+        super(ReadyThread,self).__init__()
         self.resource_name = ''
         self.channel = 1
         self.point_number = 10000
