@@ -12,6 +12,8 @@ from PyQt5 import QtGui, QtCore, uic, QtWidgets
 tctEnable = True
 if tctEnable:
     import pymotor
+    import thread
+    import MDO3034Control
     import VitualDevice as vitual_dev
 
 testpass = False
@@ -28,12 +30,13 @@ class MainWidget(QtWidgets.QWidget):
 
         self.uiFile = "GUI/XYZWidget.ui"
         self.ui = uic.loadUi(self.uiFile)
-        self.Title = "XYZ Motor"
+        self.Title = "TCT Control"
         ##############################################################
         self.timer = QtCore.QTimer()
        
         self.SetMotor()
-        self.SetSpeed()
+        #self.SetSpeed()
+        self.ui.Interface.addItems(MDO3034Control.ReadInterface())
             
 
         #Move
@@ -69,6 +72,18 @@ class MainWidget(QtWidgets.QWidget):
         #set speed
         self.ui.Set_Speed.clicked.connect(self.SetSpeed)
 
+        #set folder
+        self.ui.FolderSet.clicked.connect(self.SetFolder)
+
+        #capture data
+        self.ui.CaptureBut.clicked.connect(self.SaveData)
+
+        #capture pause
+        self.ui.CapturePause.clicked.connect(self.CapturePause)
+
+        #Capture ready
+        self.ui.ReadyBut.clicked.connect(self.Ready)
+
          # Var
         self.currentPosX = 0
         self.currentPosY = 0
@@ -84,7 +99,7 @@ class MainWidget(QtWidgets.QWidget):
         self.ui.show()
 
     def ClickMove(self,px,py,pz):
-        self.new_thread = ControlThread(self.setdevice)
+        self.new_thread = thread.ControlThread(self.setdevice)
         self.new_thread.operation_num = 3
         self.new_thread.px = px
         self.new_thread.py = py
@@ -92,7 +107,7 @@ class MainWidget(QtWidgets.QWidget):
         self.new_thread.start()
 
     def MoveStep(self,motor,direction,steps):
-        self.new_thread = ControlThread(self.setdevice)
+        self.new_thread = thread.ControlThread(self.setdevice)
         self.new_thread.operation_num = 4
         self.new_thread.mv = direction*steps
         if motor == "X":
@@ -105,7 +120,7 @@ class MainWidget(QtWidgets.QWidget):
             print("\n\n\nError!!!!!!!\n\n\n")
         self.new_thread.start()
     def Home(self,motor):
-        self.new_thread = ControlThread(self.setdevice)
+        self.new_thread = thread.ControlThread(self.setdevice)
         self.new_thread.operation_num = 1
         if motor == "X":
             self.new_thread.motor = self.new_thread.laser_stage.Xaxis
@@ -117,7 +132,7 @@ class MainWidget(QtWidgets.QWidget):
             print("\n\n\nError!!!!!!!\n\n\n")
         self.new_thread.start()
     def Scan(self):
-        self.new_thread = ControlThread(self.setdevice)
+        self.new_thread = thread.ControlThread(self.setdevice)
         self.new_thread.operation_num = 5
         self.new_thread.po = [self.ui.x0.value(),self.ui.y0.value(),self.ui.z0.value()]
         self.new_thread.dp = [self.ui.dx.value(),self.ui.dy.value(),self.ui.dz.value()]
@@ -139,7 +154,7 @@ class MainWidget(QtWidgets.QWidget):
         self.speed[0] = self.ui.Speed_X.value()
         self.speed[1] = self.ui.Speed_Y.value()
         self.speed[2] = self.ui.Speed_Z.value()
-        self.new_thread = ControlThread(self.setdevice)
+        self.new_thread = thread.ControlThread(self.setdevice)
         self.new_thread.operation_num = 6
         self.new_thread.step = self.steps
         self.new_thread.speed = self.speed
@@ -147,7 +162,7 @@ class MainWidget(QtWidgets.QWidget):
 
 
     def Stop(self):
-        self.new_thread = ControlThread(self.setdevice)
+        self.new_thread = thread.ControlThread(self.setdevice)
         self.new_thread.operation_num = 2
         self.new_thread.start()
 
@@ -196,145 +211,43 @@ class MainWidget(QtWidgets.QWidget):
             self.ui.CurrentPosZ.display(self.currentPosZ)
             self.ui.CurrentPosZ_2.display(self.currentPosZ)
             self.timer.start(500)
+    def SetFolder(self):
+        dlg = QtWidgets.QFileDialog()
+        dlg.setFileMode(QtWidgets.QFileDialog.Directory)
+        dlg.setFilter(QtCore.QDir.Files)
+        if dlg.exec_():
+            filenames = dlg.selectedFiles()
+            print(repr(filenames))
+            self.ui.FolderText.setText(filenames[0])
 
 
-class ControlThread(QtCore.QThread):
-    def __init__(self,device):
-        super(ControlThread,self).__init__()
-        self.laser_stage = Stage(device)
-        #control message initial
-        self.operation_num = 0
-        self.motor = self.laser_stage.Xaxis
-        self.px = 0
-        self.py = 0
-        self.pz = 0
-        self.mv = 0
-        self.po = [0,0,0]
-        self.dp = [1,1,1]
-        self.Np = [0,0,0]
-        self.step = [8,8,8]
-        self.speed = [0,0,0]
 
-    #############################
-    # 1.home 
-    # 2.stop
-    # 3.move set position
-    # 4.move step
-    # 5.scan
-    # 6.set speed
-    ############################
-    def run(self):
-        if self.operation_num == 1:
-            self.laser_stage.Home(self.motor)
-        elif self.operation_num == 2:
-            self.laser_stage.Stop()
-        elif self.operation_num == 3:
-            self.laser_stage.MoveAB(self.px,self.py,self.pz)
-        elif self.operation_num == 4:
-            self.laser_stage.MoveRE(self.motor,self.mv)
-        elif self.operation_num == 5:
-            self.laser_stage.Scan(self.po,self.dp,self.Np)
-        elif self.operation_num == 6:
-            self.laser_stage.SetSpeed(self.step,self.speed)
-        else:
-            time.sleep(1)
+    def SaveData(self):
+        self.capture_thread = thread.DataCapture()
+        self.capture_thread.flag = True
+        self.capture_thread.resource = self.ui.Interface.currentText()
+        self.capture_thread.folder = self.ui.FolderText.Text()
+        self.capture_thread.device = self.setdevice
+        self.capture_thread.frequency = self.ui.Frequency.value()
+        self.capture_thread.start()
+
+    def CapturePause(self):
+        self.capture_thread.flag = False
 
 
-class Stage():
-    def __init__(self,device):
-        self.Xaxis = device[0]
-        self.Yaxis = device[1]
-        self.Zaxis = device[2]
-        self.flag = 1
 
-    def SetSpeed(self,step,speed):
-        self.Xaxis.set_speed(step[0],speed[0])
-        self.Yaxis.set_speed(step[1],speed[1])
-        self.Zaxis.set_speed(step[2],speed[2])
-        
+    def Ready(self):
+        self.readythread = thread.ReadyThread()
+        self.readythread.resource_name = self.ui.Interface.currentText()
+        self.readythread.channel = self.ui.Channel.value()
+        self.readythread.point_number = self.ui.Points.value()
+        self.readythread.start()
+        self.readythread.sinOut.connect(lambda:self.DisplayReadyInfo(self.readythread.message))
 
-    def Home(self,motor):
-            if tctEnable:
-                motor.home()
+    def DisplayReadyInfo(self,dis_message):
+        self.ui.InfoText.setText(dis_message)
 
-    def Stop(self):
-        if tctEnable:
-            self.Xaxis.stop()
-            self.Yaxis.stop()
-            self.Zaxis.stop()
 
-    '''
-    def Limits(self):
-        self.Limits = Limits(self)
-    '''
-    def MoveAB(self,pos_X,pos_Y,pos_Z):
-        if tctEnable:
-            self.Xaxis.move(pos_X)
-            self.Yaxis.move(pos_Y)
-            self.Zaxis.move(pos_Z)
-
-    def MoveRE(self,motor,movement):
-        UpperLimit = 1000     
-        LowerLimit = -1000    
-        currentPos = motor.get_status_position()
-        if currentPos + movement > UpperLimit:
-            movement = UpperLimit - currentPos
-        elif currentPos + movement < LowerLimit:
-            movement = LowerLimit - currentPos
-
-        if tctEnable:
-            motor.forward(movement)
-        time.sleep(0.1)
-
-    
-    def Scan(self,pos_o,dp,Np):
-        self.x0 = pos_o[0] 
-        self.y0 = pos_o[1]
-        self.z0 = pos_o[2]
-        self.dx = dp[0]
-        self.dy = dp[1]
-        self.dz = dp[2]
-        self.Nx = Np[0]
-        self.Ny = Np[1]
-        self.Nz = Np[2]
-        
-        if self.flag == 1:
-            self.MoveAB(self.x0,self.y0,self.z0)
-            #delay 1 second for motor moving to (x0,y0.z0)
-            time.sleep(2)
-        
-            # # scan step by step
-            # self.flag1 = self.flag2 = -1
-            # for self.i in range(0, self.Nz):
-            #     self.MoveRE(self.Zaxis, self.dz)
-            #     self.flag1 = self.flag1 * (-1)
-            #     for self.j in range(0, self.Nx):
-            #         self.MoveRE(self.Xaxis, self.flag1 * self.dx)
-            #         self.flag2 = self.flag2 * (-1)
-            #         for self.k in range(0, self.Ny):
-            #             self.MoveRE(self.Yaxis, self.flag2 * self.dy)
-            #             #print(self.Xaxis.get_status_position(),self.Yaxis.get_status_position(),self.Zaxis.get_status_position())
-            #             print(self.ui.CurrentPosX_2.value(),self.ui.CurrentPosY_2.value(),self.ui.CurrentPosZ_2.value())
-            #             self.timer.timeout.connect(self.UpdateDesiredPos)
-            #             self.timer.start(100)
-            #             #self.UpdateDesiredPos() 
-                        
-
-            for self.PZ in range(self.z0, self.z0 + ((self.Nz + 1) * self.dz) , self.dz):
-                if self.flag == 0:
-                    break
-                for self.PX in range(self.x0, self.x0 + ((self.Nx + 1) * self.dx) , self.dx):
-                    if self.flag == 0:
-                        print('####break######')
-                        break
-                    for self.PY in range(self.y0, self.y0 + ((self.Ny + 1) * self.dy) , self.dy):
-                        if self.flag == 0:
-                            break
-                        self.MoveAB(self.PX, self.PY, self.PZ)
-                        print(self.Xaxis.get_status_position(),self.Yaxis.get_status_position(),self.Zaxis.get_status_position())
-                        #self.timer.timeout.connect(self.UpdateDesiredPos)
-                        #self.timer.start(100)
-                        #time.sleep(0.1)
 
 
 
