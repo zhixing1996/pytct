@@ -55,7 +55,7 @@ class MDO3034C:
         print("xzero = " + repr(xzero) + '\n')
         return ymult,yzero,yoff,xincr,xzero
 
-    def readWave(self,ymult,yzero,yoff,xincr,xzre,point_num):
+    def readWave(self,ymult,yzero,yoff,xincr,xzero,point_num):
         #ymult,yzero,yoff,xincr,xzero=self.readOffset()
         self.my_resource.write('*CLS')
         self.my_resource.write("CURVE?")

@@ -230,6 +230,11 @@ class MainWidget(QtWidgets.QWidget):
         self.capture_thread.device = self.setdevice
         self.capture_thread.frequency = self.ui.Frequency.value()
         self.capture_thread.point_num = self.ui.Points.value()
+        self.capture_thread.ymult = float(self.ui.ymult.text())
+        self.capture_thread.yzero = float(self.ui.yzero.text())
+        self.capture_thread.yoff = float(self.ui.yoff.text())
+        self.capture_thread.xincr = float(self.ui.xincr.text())
+        self.capture_thread.xzero = float(self.ui.xzero.text())
         self.capture_thread.start()
 
     def CapturePause(self):
@@ -246,7 +251,15 @@ class MainWidget(QtWidgets.QWidget):
         self.readythread.sinOut.connect(lambda:self.DisplayReadyInfo(self.readythread.message))
 
     def DisplayReadyInfo(self,dis_message):
-        self.ui.InfoText.append(dis_message)
+        if dis_message == 'offset':
+            self.ui.InfoText.append("read offset complete!")
+            self.ui.ymult.setText(str(self.readythread.ymult))
+            self.ui.yzero.setText(str(self.readythread.yzero))
+            self.ui.yoff.setText(str(self.readythread.yoff))
+            self.ui.xincr.setText(str(self.readythread.xincr))
+            self.ui.xzero.setText(str(self.readythread.xzero))
+        else:
+            self.ui.InfoText.append(dis_message)
 
 
 

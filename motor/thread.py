@@ -54,6 +54,11 @@ class DataCapture(QtCore.QThread):
         self.device = []
         self.frequency = 10
         self.point_num = 10000
+        self.ymult = 0
+        self.yoff = 0
+        self.yzero = 0
+        self.xincr = 0
+        self.xzero = 0
         self.timer = QtCore.QTimer()
         self.flag = True
 
@@ -67,7 +72,7 @@ class DataCapture(QtCore.QThread):
     def capture(self):
         filename = self.folder + '/TCT' + str(datetime.now().isoformat()) + '.csv'
         self.pos = [self.device[0].get_status_position(),self.device[1].get_status_position(),self.device[2].get_status_position()]
-        time,voltage = self.scope.readWave(self.point_num)
+        time,voltage = self.scope.readWave(self.ymult,self.yzero,self.yoff,self.xincr,self.xzero,self.point_num)
         myfile = open(filename,'a+')
         myfile.write('oscilloscope,' + self.info + '\n')
         myfile.write(',' + 'x' + self.pos[0] + '\n')
@@ -95,6 +100,8 @@ class ReadyThread(QtCore.QThread):
         self.scope.readSet(str(self.channel),str(self.point_number))
         self.message = "read set complete!"
         self.sinOut.emit('send')
+        self.ymult,self.yzero,self.yoff,self.xincr,self.xzero = self.scope.readOffset()
+        self.sinOut.emit('offset')
         # self.scope.readWave()
         # self.message = "read wave complete!"
         # self.sinOut.emit('send')
