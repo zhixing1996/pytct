@@ -1637,7 +1637,7 @@
        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;yzero:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
-     <widget class="QLabel" name="yzore">
+     <widget class="QLabel" name="yzero">
       <property name="geometry">
        <rect>
         <x>380</x>
