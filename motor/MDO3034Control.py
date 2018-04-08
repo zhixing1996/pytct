@@ -24,8 +24,9 @@ class MDO3034C:
         self.my_resource.write('*CLS')
         #self.my_resource.query_delay = 10.0
         message=self.my_resource.query('*IDN?')
-        time.sleep(1)
+        time.sleep(0.5)
         print("ocsilloscope information:" + message)
+        return message
 		
     def readSet(self,ch,point_number):
         self.my_resource.write(":DATA:SOU "+ ch)
@@ -54,41 +55,47 @@ class MDO3034C:
         print("xzero = " + repr(xzero) + '\n')
         return ymult,yzero,yoff,xincr,xzero
 
-    def readWave(self):
-        ymult,yzero,yoff,xincr,xzero=self.readOffset()
+    def readWave(self,ymult,yzero,yoff,xincr,xzero,point_num):
+        #ymult,yzero,yoff,xincr,xzero=self.readOffset()
         self.my_resource.write('*CLS')
         self.my_resource.write("CURVE?")
-        file = open('test.txt','w+')
+        #file = open('test.txt','w+')
 
         ##########################################
         # receive data format:
         # #510000<data>\n        receive 10000 data
         # #41000<data>\n         receive 1000 data
         #########################################
-        data = np.frombuffer(self.my_resource.read_raw(),dtype=np.int8,count=int(POINT_NUMBER),offset=len(POINT_NUMBER) + 2)
-        np.savetxt('test.txt',data,fmt='%d',delimiter=',')
+        data = np.frombuffer(self.my_resource.read_raw(),dtype=np.int8,count=int(point_num),offset=len(str(point_num)) + 2)
+        #np.savetxt('test.txt',data,fmt='%d',delimiter=',')
 
         print(data.size)
-        Volts = (data - 0) * ymult  + yzero
+        Volts = (data - yoff) * ymult  + yzero
         Time = np.arange(0, data.size, 1)
         Time = Time * xincr + xzero
 
         return Time, Volts
 
-    def save_wave_data(self,time,voltage):
+    def save_wave_data(self,time,voltage,filenames='./data.csv'):
         datadic = {'Time[ms]':time,'Voltage[mv]':voltage}
         dataform  = pd.DataFrame(datadic,columns=['Time[ms]','Voltage[mv]'])
-        dataform.to_csv('dataform.csv')
+        dataform.to_csv(filenames,mode='a+',index=False)
         
 
     def plotWave(self, Time, Volts):
         pylab.plot(Time, Volts)
         pylab.show()
 
+def ReadInterface():
+    rm = visa.ResourceManager()
+    print(rm.list_resources())
+    list_sources = rm.list_resources()
+    return list_sources
   
 if __name__=="__main__":
     POINT_NUMBER = '10000'
     CHANNEL = 'CH1'
+    FILENAMES = './dataform.csv'
     rm = visa.ResourceManager()
     print(rm.list_resources())
     list_sources = rm.list_resources()
