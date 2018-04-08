@@ -78,8 +78,8 @@ class MDO3034C:
 
     def save_wave_data(self,time,voltage,filenames='./data.csv'):
         datadic = {'Time[ms]':time,'Voltage[mv]':voltage}
-        dataform  = pd.DataFrame(datadic,columns=['Time[ms]','Voltage[mv]'],mode='a+',index=False)
-        dataform.to_csv(filenames)
+        dataform  = pd.DataFrame(datadic,columns=['Time[ms]','Voltage[mv]'])
+        dataform.to_csv(filenames,mode='a+',index=False)
         
 
     def plotWave(self, Time, Volts):

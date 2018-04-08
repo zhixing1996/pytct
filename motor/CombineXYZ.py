@@ -33,7 +33,7 @@ class MainWidget(QtWidgets.QWidget):
         self.Title = "TCT Control"
         ##############################################################
         self.timer = QtCore.QTimer()
-       
+        self.timer.start(500)
         self.SetMotor()
         #self.SetSpeed()
         self.ui.Interface.addItems(MDO3034Control.ReadInterface())
@@ -210,7 +210,7 @@ class MainWidget(QtWidgets.QWidget):
             self.ui.CurrentPosY_2.display(self.currentPosY)
             self.ui.CurrentPosZ.display(self.currentPosZ)
             self.ui.CurrentPosZ_2.display(self.currentPosZ)
-            self.timer.start(500)
+            #self.timer.start(500)
     def SetFolder(self):
         dlg = QtWidgets.QFileDialog()
         dlg.setFileMode(QtWidgets.QFileDialog.Directory)
@@ -235,6 +235,7 @@ class MainWidget(QtWidgets.QWidget):
         self.capture_thread.yoff = float(self.ui.yoff.text())
         self.capture_thread.xincr = float(self.ui.xincr.text())
         self.capture_thread.xzero = float(self.ui.xzero.text())
+        self.capture_thread.scope = self.scope
         self.capture_thread.start()
 
     def CapturePause(self):
@@ -248,18 +249,21 @@ class MainWidget(QtWidgets.QWidget):
         self.readythread.channel = self.ui.Channel.value()
         self.readythread.point_number = self.ui.Points.value()
         self.readythread.start()
-        self.readythread.sinOut.connect(lambda:self.DisplayReadyInfo(self.readythread.message))
+        self.readythread.sinOut.connect(self.DisplayReadyInfo)
 
     def DisplayReadyInfo(self,dis_message):
-        if dis_message == 'offset':
-            self.ui.InfoText.append("read offset complete!")
+        if dis_message == "offset":
+            self.ui.InfoText.append(self.readythread.message)
             self.ui.ymult.setText(str(self.readythread.ymult))
             self.ui.yzero.setText(str(self.readythread.yzero))
             self.ui.yoff.setText(str(self.readythread.yoff))
             self.ui.xincr.setText(str(self.readythread.xincr))
             self.ui.xzero.setText(str(self.readythread.xzero))
+        elif dis_message == "open":
+            self.scope = self.readythread.scope
+            self.ui.InfoText.append(self.readythread.message)
         else:
-            self.ui.InfoText.append(dis_message)
+            self.ui.InfoText.append(self.readythread.message)
 
 
 

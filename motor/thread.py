@@ -47,6 +47,7 @@ class ControlThread(QtCore.QThread):
             time.sleep(1)
 
 class DataCapture(QtCore.QThread):
+    stop_signal = QtCore.pyqtSignal(str)
     def __init__(self):
         super(DataCapture,self).__init__()
         self.resource = 'ASRL1::INSTR'
@@ -59,28 +60,44 @@ class DataCapture(QtCore.QThread):
         self.yzero = 0
         self.xincr = 0
         self.xzero = 0
-        self.timer = QtCore.QTimer()
+       
         self.flag = True
+        self.scope = None
 
-    def run(self):
-        self.scope = MD.MDO3034C(self.resource)
-        self.info = self.scope.testIO()
-        self.capture()
-        if self.flag:
-            self.timer.timeout.connect(self.capture)
 
     def capture(self):
-        filename = self.folder + '/TCT' + str(datetime.now().isoformat()) + '.csv'
+        filename = self.folder + '/TCT' + datetime.now().isoformat().replace(':','') + '.csv'
         self.pos = [self.device[0].get_status_position(),self.device[1].get_status_position(),self.device[2].get_status_position()]
         time,voltage = self.scope.readWave(self.ymult,self.yzero,self.yoff,self.xincr,self.xzero,self.point_num)
-        myfile = open(filename,'a+')
+        myfile = open(filename,'w+')
         myfile.write('oscilloscope,' + self.info + '\n')
-        myfile.write(',' + 'x' + self.pos[0] + '\n')
-        myfile.write(',' + 'y' + self.pos[1] + '\n')
-        myfile.write(',' + 'z' + self.pos[2] + '\n')
+        myfile.write(',' + 'x' + ',' + str(self.pos[0]) + '\n')
+        myfile.write(',' + 'y' + ',' + str(self.pos[1]) + '\n')
+        myfile.write(',' + 'z' + ',' + str(self.pos[2]) + '\n')
         self.scope.save_wave_data(time,voltage,myfile)
-        self.timer.start(1000/self.frequency)
+        print("capture done!")
+        myfile.close()
 
+        if self.flag == False:
+            self.stop_signal.emit('stop')
+            #print("pause##########")
+            #self.timer.stop()
+            #self.finished()
+
+
+    def run(self):
+        self.timer = QtCore.QTimer()
+        self.timer.start(int(1000/self.frequency))
+        #self.scope = MD.MDO3034C(self.resource)
+        self.info = self.scope.testIO()
+
+        self.timer.timeout.connect(self.capture)
+        self.stop_signal.connect(self.timer.stop)
+        self.exec()
+
+
+    
+   
 
 
 class ReadyThread(QtCore.QThread):
@@ -96,11 +113,12 @@ class ReadyThread(QtCore.QThread):
         self.scope = MD.MDO3034C(self.resource_name)
         msg = self.scope.testIO()
         self.message = "ocsilloscope information:" + msg
-        self.sinOut.emit('send')
+        self.sinOut.emit('open')
         self.scope.readSet(str(self.channel),str(self.point_number))
         self.message = "read set complete!"
-        self.sinOut.emit('send')
+        self.sinOut.emit('readset')
         self.ymult,self.yzero,self.yoff,self.xincr,self.xzero = self.scope.readOffset()
+        self.message = "read offset complete!"
         self.sinOut.emit('offset')
         # self.scope.readWave()
         # self.message = "read wave complete!"
