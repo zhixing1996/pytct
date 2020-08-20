@@ -17,8 +17,12 @@ class Stage():
         
 
     def Home(self,motor):
-            if tctEnable:
-                motor.home()
+        if tctEnable:
+            motor.home()
+
+    def Zero(self,motor):
+        if tctEnable:
+            motor.zero()
 
     def Stop(self):
         if tctEnable:
@@ -35,11 +39,18 @@ class Stage():
             self.Xaxis.move(pos_X)
             self.Yaxis.move(pos_Y)
             self.Zaxis.move(pos_Z)
+            #waiting for motor moving to (pos_X,pos_Y,pos_Z)
+            while True:
+                position_flag = (self.Xaxis.get_status_position() == pos_X) and (self.Yaxis.get_status_position() == pos_Y) and (self.Zaxis.get_status_position() == pos_Z)
+                if position_flag:
+                    break
+
 
     def MoveRE(self,motor,movement):
-        UpperLimit = 1000     
-        LowerLimit = -1000    
+        UpperLimit = 10000     
+        LowerLimit = -10000    
         currentPos = motor.get_status_position()
+        movePos = currentPos + movement
         if currentPos + movement > UpperLimit:
             movement = UpperLimit - currentPos
         elif currentPos + movement < LowerLimit:
@@ -47,7 +58,12 @@ class Stage():
 
         if tctEnable:
             motor.forward(movement)
-        time.sleep(0.1)
+            #wait for accomplishing move
+            while True:
+                move_flag = movePos == motor.get_status_position()
+                if move_flag:
+                    break
+
 
     
     def Scan(self,pos_o,dp,Np):
@@ -60,29 +76,54 @@ class Stage():
         self.Nx = Np[0]
         self.Ny = Np[1]
         self.Nz = Np[2]
-        
+        self.scan_signal = False
+
+        #preprocess the situation when Nx = 0 or Ny = 0 or Nz = 0
+        if self.Nx == 0:
+            self.dx = 0
+            self.Nx = 1
+        if self.Ny == 0:
+            self.dy = 0
+            self.Ny = 1
+        if self.Nz == 0:
+            self.dz = 0
+            self.Nz = 1
+
         if self.flag == 1:
             self.MoveAB(self.x0,self.y0,self.z0)
-            #delay 1 second for motor moving to (x0,y0.z0)
-            time.sleep(2)
-        
-            # # scan step by step
-            # self.flag1 = self.flag2 = -1
-            # for self.i in range(0, self.Nz):
-            #     self.MoveRE(self.Zaxis, self.dz)
-            #     self.flag1 = self.flag1 * (-1)
-            #     for self.j in range(0, self.Nx):
-            #         self.MoveRE(self.Xaxis, self.flag1 * self.dx)
-            #         self.flag2 = self.flag2 * (-1)
-            #         for self.k in range(0, self.Ny):
-            #             self.MoveRE(self.Yaxis, self.flag2 * self.dy)
-            #             #print(self.Xaxis.get_status_position(),self.Yaxis.get_status_position(),self.Zaxis.get_status_position())
-            #             print(self.ui.CurrentPosX_2.value(),self.ui.CurrentPosY_2.value(),self.ui.CurrentPosZ_2.value())
-            #             self.timer.timeout.connect(self.UpdateDesiredPos)
-            #             self.timer.start(100)
-            #             #self.UpdateDesiredPos() 
-                        
+            
+            # scan step by step
+            self.flag1 = self.flag2 = -1
+            for self.i in range(0, self.Nz):
+                if self.flag == 0:
+                    break
+                self.MoveRE(self.Zaxis, self.dz)
+                if self.dz != 0:
+                    self.scan_signal = True
+                self.flag1 = self.flag1 * (-1)
+                for self.j in range(0, self.Nx):
+                    if self.flag == 0:
+                        break
+                    self.MoveRE(self.Xaxis, self.flag1 * self.dx)
+                    if self.dx != 0:
+                        self.scan_signal = True
+                    print(self.Xaxis.get_status_position(),self.Yaxis.get_status_position(),self.Zaxis.get_status_position())
 
+                    self.flag2 = self.flag2 * (-1)
+                    for self.k in range(0, self.Ny):
+                        if self.flag == 0:
+                            break
+                        self.MoveRE(self.Yaxis, self.flag2 * self.dy)
+                        if self.dy != 0:
+                            self.scan_signal = True
+                        #time.sleep(1)
+                        print(self.Xaxis.get_status_position(),self.Yaxis.get_status_position(),self.Zaxis.get_status_position())
+                        #print(self.ui.CurrentPosX_2.value(),self.ui.CurrentPosY_2.value(),self.ui.CurrentPosZ_2.value())
+                        #self.timer.timeout.connect(self.UpdateDesiredPos)
+                        #self.timer.start(100)
+                        #self.UpdateDesiredPos() 
+                        
+            '''
             for self.PZ in range(self.z0, self.z0 + ((self.Nz + 1) * self.dz) , self.dz):
                 if self.flag == 0:
                     break
@@ -98,3 +139,4 @@ class Stage():
                         #self.timer.timeout.connect(self.UpdateDesiredPos)
                         #self.timer.start(100)
                         #time.sleep(0.1)
+            '''

@@ -24,8 +24,8 @@ class MDO3034C:
         self.my_resource.write('*CLS')
         #self.my_resource.query_delay = 10.0
         message=self.my_resource.query('*IDN?')
-        time.sleep(0.5)
-        print("ocsilloscope information:" + message)
+        time.sleep(1)
+        #print("ocsilloscope information:" + message)
         return message
 		
     def readSet(self,ch,point_number):
@@ -92,26 +92,3 @@ def ReadInterface():
     list_sources = rm.list_resources()
     return list_sources
   
-if __name__=="__main__":
-    POINT_NUMBER = '10000'
-    CHANNEL = 'CH1'
-    FILENAMES = './dataform.csv'
-    rm = visa.ResourceManager()
-    print(rm.list_resources())
-    list_sources = rm.list_resources()
-    for resource_name in list_sources:
-        match_result = re.match(r'TCPIP',resource_name)
-        if match_result:
-            tcpip_resource = resource_name
-            print("the TCPIP resource is:" + repr(tcpip_resource))
-            break
-        else:
-            print("no TCPIP resource,please check it!")
-            exit()
-    scope=MDO3034C(tcpip_resource)
-    scope.testIO()
-    scope.readSet(CHANNEL,POINT_NUMBER)
-    
-    Time,Volts = scope.readWave()
-    scope.plotWave(Time, Volts)
-    print(max(Volts)-min(Volts))
