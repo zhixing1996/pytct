@@ -45,7 +45,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -81,12 +81,12 @@
         <rect>
          <x>10</x>
          <y>40</y>
-         <width>101</width>
+         <width>51</width>
          <height>41</height>
         </rect>
        </property>
        <property name="text">
-        <string>reset pos.X</string>
+        <string>Home X</string>
        </property>
       </widget>
       <widget class="QPushButton" name="ResetPosY">
@@ -94,12 +94,12 @@
         <rect>
          <x>10</x>
          <y>130</y>
-         <width>101</width>
+         <width>51</width>
          <height>41</height>
         </rect>
        </property>
        <property name="text">
-        <string>reset pos.Y</string>
+        <string>Home Y</string>
        </property>
       </widget>
       <widget class="QPushButton" name="ResetPosZ">
@@ -107,12 +107,12 @@
         <rect>
          <x>10</x>
          <y>200</y>
-         <width>101</width>
+         <width>51</width>
          <height>41</height>
         </rect>
        </property>
        <property name="text">
-        <string>reset pos.Z</string>
+        <string>Home Z</string>
        </property>
       </widget>
       <widget class="QPushButton" name="SetMotor">
@@ -126,6 +126,45 @@
        </property>
        <property name="text">
         <string>Set Motor</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="zeroX">
+       <property name="geometry">
+        <rect>
+         <x>70</x>
+         <y>40</y>
+         <width>51</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Zero X</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="zeroY">
+       <property name="geometry">
+        <rect>
+         <x>70</x>
+         <y>130</y>
+         <width>51</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Zero Y</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="zeroZ">
+       <property name="geometry">
+        <rect>
+         <x>70</x>
+         <y>200</y>
+         <width>51</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Zero Z</string>
        </property>
       </widget>
      </widget>
@@ -306,6 +345,9 @@
        <property name="buttonSymbols">
         <enum>QAbstractSpinBox::UpDownArrows</enum>
        </property>
+       <property name="maximum">
+        <number>500</number>
+       </property>
       </widget>
       <widget class="QSpinBox" name="StepMoveY">
        <property name="geometry">
@@ -316,6 +358,9 @@
          <height>31</height>
         </rect>
        </property>
+       <property name="maximum">
+        <number>500</number>
+       </property>
       </widget>
       <widget class="QSpinBox" name="StepMoveZ">
        <property name="geometry">
@@ -325,6 +370,9 @@
          <width>71</width>
          <height>31</height>
         </rect>
+       </property>
+       <property name="maximum">
+        <number>500</number>
        </property>
       </widget>
       <widget class="QLabel" name="label">
@@ -711,6 +759,9 @@
          <height>31</height>
         </rect>
        </property>
+       <property name="minimum">
+        <number>-100000</number>
+       </property>
        <property name="maximum">
         <number>100000</number>
        </property>
@@ -772,7 +823,7 @@
         </size>
        </property>
        <property name="minimum">
-        <number>0</number>
+        <number>-100000</number>
        </property>
        <property name="maximum">
         <number>100000</number>
@@ -815,6 +866,9 @@
          <width>91</width>
          <height>31</height>
         </rect>
+       </property>
+       <property name="minimum">
+        <number>-100000</number>
        </property>
        <property name="maximum">
         <number>100000</number>
@@ -981,7 +1035,7 @@
       <widget class="QPushButton" name="ScanStop">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>200</x>
          <y>230</y>
          <width>91</width>
          <height>41</height>
@@ -989,6 +1043,19 @@
        </property>
        <property name="text">
         <string>Scanning Stop</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="Set_Speed">
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>230</y>
+         <width>91</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Set Speed</string>
        </property>
       </widget>
      </widget>
@@ -1097,7 +1164,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Positioning Paremeters&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Speed Paremeters&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
      <widget class="QGroupBox" name="groupBox_6">
@@ -1190,19 +1257,6 @@
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Step Z&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="Set_Speed">
-       <property name="geometry">
-        <rect>
-         <x>30</x>
-         <y>230</y>
-         <width>101</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Set Speed</string>
-       </property>
-      </widget>
       <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
@@ -1222,13 +1276,16 @@
            </size>
           </property>
           <property name="minimum">
-           <number>1</number>
+           <number>0</number>
           </property>
           <property name="maximum">
-           <number>8</number>
+           <number>256</number>
           </property>
           <property name="value">
-           <number>8</number>
+           <number>0</number>
+          </property>
+          <property name="displayIntegerBase">
+           <number>10</number>
           </property>
          </widget>
         </item>
@@ -1244,7 +1301,7 @@
            <number>100000</number>
           </property>
           <property name="value">
-           <number>0</number>
+           <number>1000</number>
           </property>
          </widget>
         </item>
@@ -1269,13 +1326,13 @@
            </size>
           </property>
           <property name="minimum">
-           <number>1</number>
+           <number>0</number>
           </property>
           <property name="maximum">
-           <number>8</number>
+           <number>256</number>
           </property>
           <property name="value">
-           <number>8</number>
+           <number>0</number>
           </property>
          </widget>
         </item>
@@ -1291,7 +1348,7 @@
            <number>100000</number>
           </property>
           <property name="value">
-           <number>0</number>
+           <number>1000</number>
           </property>
          </widget>
         </item>
@@ -1316,13 +1373,13 @@
            </size>
           </property>
           <property name="minimum">
-           <number>1</number>
+           <number>0</number>
           </property>
           <property name="maximum">
-           <number>8</number>
+           <number>256</number>
           </property>
           <property name="value">
-           <number>8</number>
+           <number>0</number>
           </property>
          </widget>
         </item>
@@ -1338,11 +1395,40 @@
            <number>100000</number>
           </property>
           <property name="value">
-           <number>0</number>
+           <number>1000</number>
           </property>
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QRadioButton" name="default_speed">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>220</y>
+         <width>111</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Default Speed</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="setting_speed">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>260</y>
+         <width>101</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Setting Speed</string>
+       </property>
       </widget>
      </widget>
     </widget>
@@ -1451,8 +1537,8 @@
      <widget class="QLabel" name="label_43">
       <property name="geometry">
        <rect>
-        <x>320</x>
-        <y>30</y>
+        <x>330</x>
+        <y>60</y>
         <width>161</width>
         <height>21</height>
        </rect>
@@ -1464,8 +1550,8 @@
      <widget class="QSpinBox" name="Frequency">
       <property name="geometry">
        <rect>
-        <x>490</x>
-        <y>30</y>
+        <x>500</x>
+        <y>60</y>
         <width>71</width>
         <height>21</height>
        </rect>
@@ -1700,6 +1786,48 @@
       </property>
       <property name="text">
        <string/>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="Frequency_mode">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>30</y>
+        <width>91</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Frequency</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="step_mode">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>30</y>
+        <width>89</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>step</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_49">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>10</y>
+        <width>91</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Capture Mode:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
     </widget>
