@@ -223,7 +223,7 @@ class MainWidget(QtWidgets.QWidget):
     def EmumDevice(self):
         pymotor.enum_device()
         print('\nemum complete!\n')
-        self.device_name ,self.dev_count = pymotor.enum_device()
+        self.device_name ,self.dev_count, self.friend_name = pymotor.enum_device()
         self.device = numpy.empty(5,dtype=object)
         if self.dev_count == 0:
             print("\nNo finding of device.")
@@ -239,7 +239,9 @@ class MainWidget(QtWidgets.QWidget):
                 self.i = self.i + 1
         else:
             for self.dev_ind in range(0,self.dev_count):
-                self.device[self.dev_ind] =pymotor.Motor(self.device_name[self.dev_ind])
+                if 'Axis X' in repr(self.friend_name[self.dev_ind]): self.device[0] =pymotor.Motor(self.device_name[self.dev_ind])
+                if 'Axis Y' in repr(self.friend_name[self.dev_ind]): self.device[1] =pymotor.Motor(self.device_name[self.dev_ind])
+                if 'Axis Z' in repr(self.friend_name[self.dev_ind]): self.device[2] =pymotor.Motor(self.device_name[self.dev_ind])
         
             
         

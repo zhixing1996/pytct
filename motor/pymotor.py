@@ -67,18 +67,20 @@ def enum_device():
 
     controller_name = controller_name_t()
     enum_name = ['','','']
+    friend_name = ['', '', '']
     for dev_ind in range(0, dev_count):
         enum_name[dev_ind] = lib.get_device_name(devenum, dev_ind)
         result = lib.get_enumerate_device_controller_name(devenum, dev_ind,
                                                                    byref(controller_name))
         if result == Result.Ok:
+            friend_name[dev_ind] = controller_name.ControllerName
             print("Enumerated device #{} name (port name): ".format(dev_ind) \
                     + repr(enum_name[dev_ind]) \
                     + ". Friendly name: " \
                     + repr(controller_name.ControllerName) \
                     + ".")
 
-    return enum_name, dev_count
+    return enum_name, dev_count, friend_name
 
 class Motor():
     def __init__(self, device_name = None):
