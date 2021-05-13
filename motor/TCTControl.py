@@ -239,9 +239,9 @@ class MainWidget(QtWidgets.QWidget):
                 self.i = self.i + 1
         else:
             for self.dev_ind in range(0,self.dev_count):
-                if 'Axis X' in repr(self.friend_name[self.dev_ind]): self.device[0] =pymotor.Motor(self.device_name[self.dev_ind])
-                if 'Axis Y' in repr(self.friend_name[self.dev_ind]): self.device[1] =pymotor.Motor(self.device_name[self.dev_ind])
-                if 'Axis Z' in repr(self.friend_name[self.dev_ind]): self.device[2] =pymotor.Motor(self.device_name[self.dev_ind])
+                if 'Axis 1' in repr(self.friend_name[self.dev_ind]): self.device[0] =pymotor.Motor(self.device_name[self.dev_ind])
+                if 'Axis 2' in repr(self.friend_name[self.dev_ind]): self.device[1] =pymotor.Motor(self.device_name[self.dev_ind])
+                if 'Axis 3' in repr(self.friend_name[self.dev_ind]): self.device[2] =pymotor.Motor(self.device_name[self.dev_ind])
         
             
         
